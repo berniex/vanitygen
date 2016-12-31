@@ -553,7 +553,12 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 		vg_encode_privkey(pkey, vcp->vc_privtype, privkey_buf);
 	}
 
-	if (!vcp->vc_result_file || (vcp->vc_verbose > 0)) {
+
+	if (!vcp->vc_result_file && (vcp->vc_verbose == 0)) {
+		printf("\r%79s\r%s,%s,%s\n", "", pattern, addr_buf, privkey_buf);
+	}
+
+	if (vcp->vc_verbose > 0) {
 		printf("\r%79s\rPattern: %s\n", "", pattern);
 	}
 
@@ -573,7 +578,7 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 
 	}
 
-	if (!vcp->vc_result_file || (vcp->vc_verbose > 0)) {
+	if (vcp->vc_verbose > 0) {
 		if (isscript)
 			printf("P2SHAddress: %s\n", addr2_buf);
 		printf("Address: %s\n"
@@ -588,15 +593,21 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 				"ERROR: could not open result file: %s\n",
 				strerror(errno));
 		} else {
-			fprintf(fp,
-				"Pattern: %s\n"
-				, pattern);
-			if (isscript)
-				fprintf(fp, "P2SHAddress: %s\n", addr2_buf);
-			fprintf(fp,
-				"Address: %s\n"
-				"%s: %s\n",
-				addr_buf, keytype, privkey_buf);
+			if (vcp->vc_verbose == 0){
+				fprintf(fp,
+					"%s,%s,%s\n"
+					, pattern, addr_buf, privkey_buf);
+			} else {
+				fprintf(fp,
+					"Pattern: %s\n"
+					, pattern);
+				if (isscript)
+					fprintf(fp, "P2SHAddress: %s\n", addr2_buf);
+				fprintf(fp,
+					"Address: %s\n"
+					"%s: %s\n",
+					addr_buf, keytype, privkey_buf);
+			}
 			fclose(fp);
 		}
 	}
@@ -1488,6 +1499,17 @@ research:
 					   vp->vp_pattern);
 
 		vcpp->base.vc_found++;
+
+		if (vcpp->base.vc_out_countset) {
+			if (vcpp->base.vc_out_count > 1) {
+				vcpp->base.vc_out_count -=1;
+			}
+			else{
+				vcpp->base.vc_remove_on_match = 1;
+				vcpp->base.vc_only_one = 1;
+				return 2;
+			}
+		}
 
 		if (vcpp->base.vc_only_one) {
 			return 2;
