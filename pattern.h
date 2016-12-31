@@ -177,3 +177,4 @@ extern void vg_exec_context_yield(vg_exec_context_t *vxcp);
 
 
 #endif /* !defined (__VG_PATTERN_H__) */
+
