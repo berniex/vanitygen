@@ -53,7 +53,7 @@ usage(const char *name)
 "\n"
 "Options:\n"
 "-v            Verbose output\n"
-"-q            Quiet output\n"
+"-q            Quiet output. Now outputs matched results in comma separated list - easy for csv import\n"
 "-i            Case-insensitive prefix search\n"
 "-k            Keep pattern and continue search after finding a match\n"
 "-1            Stop after first match\n"
@@ -76,7 +76,8 @@ usage(const char *name)
 "-f <file>     File containing list of patterns, one per line\n"
 "              (Use \"-\" as the file name for stdin)\n"
 "-o <file>     Write pattern matches to <file>\n"
-"-s <file>     Seed random number generator from <file>\n",
+"-s <file>     Seed random number generator from <file>\n"
+"-c <num>      generates fixed number of matched results (patterns,addresses,private_keys)\n",
 version, name);
 }
 
@@ -106,6 +107,8 @@ main(int argc, char **argv)
 	int only_one = 0;
 	int verify_mode = 0;
 	int safe_mode = 0;
+	int out_count = 1;
+	int out_countset = 0;
 	vg_context_t *vcp = NULL;
 	vg_ocl_context_t *vocp = NULL;
 	EC_POINT *pubkey_base = NULL;
@@ -282,6 +285,16 @@ main(int argc, char **argv)
 			}
 			seedfile = optarg;
 			break;
+		case 'c':
+			out_countset=1;
+			out_count = atoi(optarg);
+			remove_on_match = 0;
+			if (out_count < 1) {
+				fprintf(stderr,
+					"Invalid out_count '%s'\n", optarg);
+				return 1;
+			}
+			break;
 		default:
 			usage(argv[0]);
 			return 1;
@@ -333,6 +346,8 @@ main(int argc, char **argv)
 	vcp->vc_verbose = verbose;
 	vcp->vc_result_file = result_file;
 	vcp->vc_remove_on_match = remove_on_match;
+	vcp->vc_out_count = out_count;
+	vcp->vc_out_countset = out_countset;
 	vcp->vc_only_one = only_one;
 	vcp->vc_pubkeytype = addrtype;
 	vcp->vc_pubkey_base = pubkey_base;
