@@ -555,7 +555,7 @@ vg_output_match_console(vg_context_t *vcp, EC_KEY *pkey, const char *pattern)
 
 
 	if (!vcp->vc_result_file && (vcp->vc_verbose == 0)) {
-		printf("\r%79s\r%s,%s,%s\n", "", pattern, addr_buf, privkey_buf);
+		printf("%s,%s,%s\n",pattern , addr_buf, privkey_buf);
 	}
 
 	if (vcp->vc_verbose > 0) {
